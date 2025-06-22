@@ -32,18 +32,25 @@ func GetPendingSignInTasks(c *gin.Context) {
 }
 
 // GetSignInRecordsByStudent godoc
-// @Summary      学生查询签到历史
-// @Tags         sign_in
+// @Summary      学生查询个人签到历史
+// @Tags         学生签到
 // @Produce      json
+// @Param        Authorization header string true "Bearer <token>"
 // @Success      200   {object}  response.AppData
 // @Router       /student/sign_in/history [get]
 func GetSignInRecordsByStudent(c *gin.Context) {
 	studentID := c.GetUint("userID")
+	if studentID == 0 {
+		response.Failed(c, 200, response.NewAppErr(globals.StatusUnauthorized, fmt.Errorf("用户未登录或Token无效"), nil))
+		return
+	}
+
 	records, err := logics.GetSignInRecordsByStudentID(studentID)
 	if err != nil {
 		response.Failed(c, 200, response.NewAppErr(globals.StatusInternalServerError, err, nil))
 		return
 	}
+
 	response.Success(c, 200, response.NewAppData(globals.StatusOK, "查询成功", records))
 }
 

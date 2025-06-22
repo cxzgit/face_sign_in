@@ -40,6 +40,13 @@ func DBInit() {
 func TableInit() {
 	err := globals.DB.AutoMigrate(
 		&models.Student{},
+		&models.Teacher{},
+		&models.Admin{},
+		&models.Class{},
+		&models.Course{},
+		&models.CourseClass{},
+		&models.SignInTask{},
+		&models.SignInRecord{},
 	)
 	if err != nil {
 		globals.Log.Panicf("db.AutoMigrate err = %s", err)

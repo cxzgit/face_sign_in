@@ -3,10 +3,12 @@ package logics
 import (
 	"errors"
 	"face-signIn/internal/models"
+	"face-signIn/internal/responses"
+	"face-signIn
 	"face-signIn/internal/userManage/repositories"
 	"face-signIn/pkg/utils"
 	"gorm.io/gorm"
-	"time"
+	"face-signIn/internal/responses"
 )
 
 // GetPendingSignInTasksForStudent 获取学生待签到任务
@@ -15,9 +17,24 @@ func GetPendingSignInTasksForStudent(studentID, classID uint) ([]models.SignInTa
 	return repositories.GetPendingSignInTasksForStudent(classID, studentID, now)
 }
 
-// GetSignInRecordsByStudentID 获取学生签到历史
-func GetSignInRecordsByStudentID(studentID uint) ([]models.SignInRecord, error) {
-	return repositories.GetSignInRecordsByStudentID(studentID)
+// GetSignInRecordsByStudentID 获取学生签到历史，并附带任务信息
+func GetSignInRecordsByStudentID(studentID uint) ([]*responses.SignInRecordInfo, error) {
+	records, err := repositories.GetSignInRecordsByStudentID(studentID)
+	if err != nil {
+		return nil, err
+	}
+
+	var recordInfos []*responses.SignInRecordInfo
+	for _, record := range records {
+		task, err := repositories.GetSignInTaskByID(record.SignInTaskID)
+		taskDesc := ""
+		if err == nil && task != nil {
+			taskDesc = task.Description
+		}
+		recordInfos = append(recordInfos, responses.NewSignInRecordInfo(record, taskDesc))
+	}
+
+	return recordInfos, nil
 }
 
 // StudentSignIn 学生签到逻辑
